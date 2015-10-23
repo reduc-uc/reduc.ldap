@@ -62,7 +62,7 @@ class Ldap:
         else:
             modlist = ldap.modlist.modifyModlist(oldEntry, newEntry)
             # Convertimos unicode a string
-            modlist = [(x[0], x[1], None if x[2] is None else str(x[2]))
+            modlist = [(x[0], x[1], self._sanitize_unicode(x[2]))
                             for x in modlist]
             return self.server.modify_s(newEntry.dn, modlist)
 
@@ -83,6 +83,14 @@ class Ldap:
             return self.search(filter).next()
         except StopIteration:
             return Entry()
+
+    def _sanitize_unicode(self, prop):
+        if type(prop) == unicode:
+            return str(prop)
+        elif type(prop) == list:
+            return [str(x) for x in prop]
+        else:
+            return prop
 
 
 class Entry(dict):
